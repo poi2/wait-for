@@ -1,0 +1,11 @@
+services:
+  # HTTP service for testing
+  httpbin:
+    image: kennethreitz/httpbin
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status/200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
