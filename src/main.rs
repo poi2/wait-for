@@ -1,9 +1,11 @@
 use anyhow::{bail, Context, Result};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
+use std::io::Write;
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::process::Command;
 use std::time::{Duration, Instant};
 use std::{process, thread};
+use termcolor::{Color, ColorChoice as TermColorChoice, ColorSpec, StandardStream, WriteColor};
 use url::Url;
 
 #[derive(Parser)]
@@ -20,9 +22,107 @@ struct Cli {
     #[arg(short, long)]
     quiet: bool,
 
+    /// Colored output control
+    #[arg(long, value_enum, default_value = "never")]
+    color: ColorChoice,
+
     /// Command to execute after successful wait
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     command: Vec<String>,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+enum ColorChoice {
+    Auto,
+    Always,
+    Never,
+}
+
+struct ColorOutput {
+    stdout: StandardStream,
+    stderr: StandardStream,
+    use_color: bool,
+}
+
+impl ColorOutput {
+    fn new(choice: &ColorChoice) -> Self {
+        let use_color = should_use_color(choice);
+        let color_choice = if use_color {
+            TermColorChoice::Auto
+        } else {
+            TermColorChoice::Never
+        };
+
+        Self {
+            stdout: StandardStream::stdout(color_choice),
+            stderr: StandardStream::stderr(color_choice),
+            use_color,
+        }
+    }
+
+    fn print_info(&mut self, msg: &str) {
+        if self.use_color {
+            self.stdout
+                .set_color(ColorSpec::new().set_fg(Some(Color::Blue)))
+                .ok();
+        }
+        writeln!(&mut self.stdout, "{msg}").ok();
+        if self.use_color {
+            self.stdout.reset().ok();
+        }
+    }
+
+    fn print_success(&mut self, msg: &str) {
+        if self.use_color {
+            self.stdout
+                .set_color(ColorSpec::new().set_fg(Some(Color::Green)))
+                .ok();
+        }
+        writeln!(&mut self.stdout, "{msg}").ok();
+        if self.use_color {
+            self.stdout.reset().ok();
+        }
+    }
+
+    fn print_error(&mut self, msg: &str) {
+        if self.use_color {
+            self.stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Red)))
+                .ok();
+        }
+        writeln!(&mut self.stderr, "{msg}").ok();
+        if self.use_color {
+            self.stderr.reset().ok();
+        }
+    }
+
+    fn print_warning(&mut self, msg: &str) {
+        if self.use_color {
+            self.stderr
+                .set_color(ColorSpec::new().set_fg(Some(Color::Yellow)))
+                .ok();
+        }
+        writeln!(&mut self.stderr, "{msg}").ok();
+        if self.use_color {
+            self.stderr.reset().ok();
+        }
+    }
+}
+
+fn should_use_color(choice: &ColorChoice) -> bool {
+    match choice {
+        ColorChoice::Always => true,
+        ColorChoice::Never => false,
+        ColorChoice::Auto => {
+            if std::env::var("NO_COLOR").is_ok() {
+                return false;
+            }
+            if std::env::var("FORCE_COLOR").is_ok() {
+                return true;
+            }
+            is_terminal::IsTerminal::is_terminal(&std::io::stdout())
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -52,7 +152,7 @@ fn parse_target(target: &str) -> Result<Target> {
     }
 }
 
-fn check_tcp(host: &str, port: u16, quiet: bool) -> Result<()> {
+fn check_tcp(host: &str, port: u16, quiet: bool, output: &mut ColorOutput) -> Result<()> {
     let addr = format!("{host}:{port}");
     let socket_addrs: Vec<SocketAddr> = addr
         .to_socket_addrs()
@@ -69,13 +169,13 @@ fn check_tcp(host: &str, port: u16, quiet: bool) -> Result<()> {
         match TcpStream::connect_timeout(&socket_addr, connect_timeout) {
             Ok(_) => {
                 if !quiet {
-                    println!("Connection to {host}:{port} succeeded");
+                    output.print_success(&format!("Connection to {host}:{port} succeeded"));
                 }
                 return Ok(());
             }
             Err(e) => {
                 if !quiet {
-                    eprintln!("Connection to {socket_addr} failed: {e}");
+                    output.print_error(&format!("Connection to {socket_addr} failed: {e}"));
                 }
             }
         }
@@ -84,7 +184,7 @@ fn check_tcp(host: &str, port: u16, quiet: bool) -> Result<()> {
     bail!("Failed to connect to {host}:{port}")
 }
 
-fn check_http(url: &str, quiet: bool) -> Result<()> {
+fn check_http(url: &str, quiet: bool, output: &mut ColorOutput) -> Result<()> {
     let client = reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(2))
         .build()
@@ -97,11 +197,11 @@ fn check_http(url: &str, quiet: bool) -> Result<()> {
 
     if response.status().is_success() {
         if !quiet {
-            println!(
+            output.print_success(&format!(
                 "HTTP request to {} succeeded (status: {})",
                 url,
                 response.status()
-            );
+            ));
         }
         Ok(())
     } else {
@@ -130,6 +230,7 @@ fn execute_command(command: &[String]) -> Result<()> {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+    let mut output = ColorOutput::new(&cli.color);
 
     let target_str = cli.target.clone();
     let target = parse_target(&cli.target)
@@ -146,10 +247,10 @@ fn main() -> Result<()> {
     if !cli.quiet {
         match &target {
             Target::HostPort(host, port) => {
-                println!("Waiting for {host}:{port} to become available...");
+                output.print_info(&format!("Waiting for {host}:{port} to become available..."));
             }
             Target::Url(url) => {
-                println!("Waiting for {url} to become available...");
+                output.print_info(&format!("Waiting for {url} to become available..."));
             }
         }
     }
@@ -163,21 +264,21 @@ fn main() -> Result<()> {
         }
 
         let check_result = match &target {
-            Target::HostPort(host, port) => check_tcp(host, *port, cli.quiet),
-            Target::Url(url) => check_http(url, cli.quiet),
+            Target::HostPort(host, port) => check_tcp(host, *port, cli.quiet, &mut output),
+            Target::Url(url) => check_http(url, cli.quiet, &mut output),
         };
 
         match check_result {
             Ok(()) => {
                 if !cli.quiet {
-                    println!("Service is available!");
+                    output.print_success("Service is available!");
                 }
                 break;
             }
             Err(e) => {
                 if !cli.quiet {
-                    eprintln!("Check failed: {e}");
-                    eprintln!("Retrying in 1 second...");
+                    output.print_error(&format!("Check failed: {e}"));
+                    output.print_warning("Retrying in 1 second...");
                 }
             }
         }
