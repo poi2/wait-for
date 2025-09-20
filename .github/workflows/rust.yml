@@ -3,16 +3,20 @@ on:
   push:
     branches: ["main"]
   pull_request:
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC (JST 09:00)
+    - cron: "0 0 * * 0"
 
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      rust: ${{ steps.filter.outputs.rust }}
+      rust: ${{ steps.filter.outputs.rust || github.event_name == 'schedule' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
+        if: github.event_name != 'schedule'
         with:
           filters: |
             rust:
@@ -21,6 +25,9 @@ jobs:
               - 'Cargo.toml'
               - 'Cargo.lock'
               - '.github/workflows/rust.yml'
+      - name: Force run on schedule
+        if: github.event_name == 'schedule'
+        run: echo "rust=true" >> $GITHUB_OUTPUT
 
   lint-and-test:
     name: Lint and test
