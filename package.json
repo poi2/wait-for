@@ -1,0 +1,12 @@
+{
+  "name": "wait-for-rs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write '**.md' '**.yml'",
+    "format:check": "prettier --check '**.md' '**.yml'"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  }
+}

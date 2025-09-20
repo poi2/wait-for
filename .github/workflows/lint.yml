@@ -38,4 +38,4 @@ jobs:
         run: npm install -g prettier
 
       - name: Check markdown formatting
-        run: prettier --check "*.md"
+        run: prettier --check '**.md' '**.yml'
