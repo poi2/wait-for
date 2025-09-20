@@ -44,26 +44,31 @@ ENTRYPOINT ["wait-for", "db:5432", "--", "./start-app.sh"]
 ### Basic Examples
 
 Wait for a TCP service:
+
 ```bash
 wait-for db:5432
 ```
 
 Wait for an HTTP service:
+
 ```bash
 wait-for https://api.example.com/health
 ```
 
 Execute a command after service is ready:
+
 ```bash
 wait-for redis:6379 -- ./run-tests.sh
 ```
 
 With custom timeout:
+
 ```bash
 wait-for -t 30 postgres:5432 -- python manage.py migrate
 ```
 
 Silent mode:
+
 ```bash
 wait-for -q api:8080 -- curl http://api:8080/status
 ```
@@ -71,7 +76,7 @@ wait-for -q api:8080 -- curl http://api:8080/status
 ### Docker Compose Example
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   db:
     image: postgres:13
@@ -88,12 +93,14 @@ services:
 ### CI/CD Pipeline Examples
 
 #### GitHub Actions
+
 ```yaml
 - name: Wait for test database
   run: wait-for localhost:5432 -- npm run test
 ```
 
 #### GitLab CI
+
 ```yaml
 test:
   script:
@@ -132,6 +139,7 @@ Options:
 ## Examples by Use Case
 
 ### Database Initialization
+
 ```bash
 # Wait for PostgreSQL and run migrations
 wait-for postgres:5432 -- python manage.py migrate
@@ -141,6 +149,7 @@ wait-for mysql:3306 -- npm run db:seed
 ```
 
 ### Microservices
+
 ```bash
 # Wait for API service before running tests
 wait-for api:8080 -- npm run integration-tests
@@ -150,6 +159,7 @@ wait-for redis:6379 && wait-for postgres:5432 -- ./start-worker.sh
 ```
 
 ### Health Checks
+
 ```bash
 # Wait for HTTP health endpoint
 wait-for https://api.example.com/health -- curl -f https://api.example.com/data
@@ -170,13 +180,13 @@ The binary will be available at `target/release/wait-for`.
 
 ## Comparison with Original wait-for
 
-| Feature | wait-for (shell) | wait-for (Rust) |
-|---------|------------------|---------------------|
-| Dependencies | netcat/wget required | None (self-contained) |
-| Platform support | Unix-like only | Linux/macOS/Windows |
-| Binary size | N/A (script) | ~2MB static binary |
-| Performance | Depends on external tools | Native compiled speed |
-| Error messages | Basic | Detailed with context |
+| Feature          | wait-for (shell)          | wait-for (Rust)       |
+| ---------------- | ------------------------- | --------------------- |
+| Dependencies     | netcat/wget required      | None (self-contained) |
+| Platform support | Unix-like only            | Linux/macOS/Windows   |
+| Binary size      | N/A (script)              | ~2MB static binary    |
+| Performance      | Depends on external tools | Native compiled speed |
+| Error messages   | Basic                     | Detailed with context |
 
 ## Contributing
 
