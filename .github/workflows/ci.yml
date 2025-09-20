@@ -2,8 +2,16 @@ name: "Test"
 on:
   push:
     branches: ["main"]
+    paths: &rust_paths
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: ["main"]
+    paths:
+      - *rust_paths
 
 jobs:
   test_on_stable:
