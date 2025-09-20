@@ -57,7 +57,6 @@ jobs:
           cargo fmt --version
           cargo fmt --all --check --message-format human
 
-
       # Run tests
       - name: Run tests with all features
         run: cargo test --all-features
