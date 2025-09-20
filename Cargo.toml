@@ -6,6 +6,8 @@ authors = ["poi2"]
 description = "A simple CLI to wait for a service to be available before executing a command"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/poi2/wait-for-rs"
+categories = ["command-line-utilities", "development-tools"]
+keywords = ["cli", "docker", "service", "wait", "networking"]
 
 [[bin]]
 name = "wait-for"
