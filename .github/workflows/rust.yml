@@ -8,8 +8,6 @@ on:
       - "Cargo.lock"
       - ".github/workflows/rust.yml"
   pull_request:
-    paths:
-      - *rust_paths
 
 jobs:
   test_on_stable:

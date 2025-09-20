@@ -7,8 +7,6 @@ on:
       - ".editorconfig"
       - ".github/workflows/lint.yml"
   pull_request:
-    paths:
-      - *lint_paths
 
 jobs:
   lint:
