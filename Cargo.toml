@@ -1,11 +1,11 @@
 [package]
-name = "wait-for"
+name = "wait-for-rs"
 version = "0.1.0"
 edition = "2021"
 authors = ["poi2"]
 description = "A simple CLI to wait for a service to be available before executing a command"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/poi2/wait-for"
+repository = "https://github.com/poi2/wait-for-rs"
 
 [[bin]]
 name = "wait-for"
