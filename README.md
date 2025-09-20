@@ -1,6 +1,6 @@
 # wait-for
 
-[![CI](https://github.com/poi2/wait-for-rs/workflows/CI/badge.svg)](https://github.com/poi2/wait-for-rs/actions)
+[![Build Status](https://github.com/poi2/wait-for-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/poi2/wait-for-rs/actions)
 [![Crates.io](https://img.shields.io/crates/v/wait-for-rs.svg)](https://crates.io/crates/wait-for-rs)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)](https://github.com/poi2/wait-for-rs)
 
