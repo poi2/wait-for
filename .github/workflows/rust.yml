@@ -22,16 +22,12 @@ jobs:
               - 'Cargo.lock'
               - '.github/workflows/rust.yml'
 
-  test_on_stable:
-    name: Rust test on stable
+  lint-and-test:
+    name: Lint and test
     needs: changes
     if: ${{ needs.changes.outputs.rust == 'true' }}
-    runs-on: ${{matrix.os}}-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu, macos, windows]
-    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       # Prepare
       - uses: actions/checkout@v4
@@ -65,15 +61,34 @@ jobs:
       - name: Run integration tests
         run: cargo test --test integration_test --verbose
 
+  build-cross-platform:
+    name: Build on ${{ matrix.os }}
+    needs: [changes, lint-and-test]
+    if: ${{ needs.changes.outputs.rust == 'true' }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    timeout-minutes: 20
+    steps:
+      # Prepare
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+      - run: rustc --version
+
       # Build release
       - name: Build release
         run: cargo build --release --verbose
 
-  test_on_nightly:
-    name: Rust test on nightly
-    needs: [changes, test_on_stable]
+  test-on-nightly:
+    name: Test on nightly
+    needs: [changes, lint-and-test]
     if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       # Prepare
       - uses: actions/checkout@v4
