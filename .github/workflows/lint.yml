@@ -2,15 +2,28 @@ name: "Lint"
 on:
   push:
     branches: ["main"]
-    paths: &lint_paths
-      - "**.md"
-      - ".editorconfig"
-      - ".github/workflows/lint.yml"
   pull_request:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lint: ${{ steps.filter.outputs.lint }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            lint:
+              - '*.md'
+              - '.editorconfig'
+              - '.github/workflows/lint.yml'
+
   lint:
     name: Lint files
+    needs: changes
+    if: ${{ needs.changes.outputs.lint == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

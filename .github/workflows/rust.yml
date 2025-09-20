@@ -2,16 +2,30 @@ name: "Rust"
 on:
   push:
     branches: ["main"]
-    paths: &rust_paths
-      - "**.rs"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - ".github/workflows/rust.yml"
   pull_request:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            rust:
+              - 'src/**'
+              - 'tests/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - '.github/workflows/rust.yml'
+
   test_on_stable:
     name: Rust test on stable
+    needs: changes
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ${{matrix.os}}-latest
     strategy:
       fail-fast: false
@@ -58,7 +72,8 @@ jobs:
 
   test_on_nightly:
     name: Rust test on nightly
-    needs: test_on_stable
+    needs: [changes, test_on_stable]
+    if: ${{ needs.changes.outputs.rust == 'true' }}
     runs-on: ubuntu-latest
     steps:
       # Prepare
