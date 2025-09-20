@@ -1,8 +1,8 @@
 # wait-for
 
-[![CI](https://github.com/poi2/wait-for/workflows/CI/badge.svg)](https://github.com/poi2/wait-for/actions)
-[![Crates.io](https://img.shields.io/crates/v/wait-for.svg)](https://crates.io/crates/wait-for)
-[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)](https://github.com/poi2/wait-for)
+[![CI](https://github.com/poi2/wait-for-rs/workflows/CI/badge.svg)](https://github.com/poi2/wait-for-rs/actions)
+[![Crates.io](https://img.shields.io/crates/v/wait-for-rs.svg)](https://crates.io/crates/wait-for-rs)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)](https://github.com/poi2/wait-for-rs)
 
 A simple CLI to wait for a service to be available before executing a command.
 
@@ -21,12 +21,12 @@ A simple CLI to wait for a service to be available before executing a command.
 ### Using Cargo
 
 ```bash
-cargo install wait-for
+cargo install wait-for-rs
 ```
 
 ### Download Binary
 
-Download pre-compiled binaries from the [GitHub Releases](https://github.com/poi2/wait-for/releases) page.
+Download pre-compiled binaries from the [GitHub Releases](https://github.com/poi2/wait-for-rs/releases) page.
 
 ### Docker Usage
 
@@ -161,8 +161,8 @@ wait-for -t 60 elasticsearch:9200 -- python index_data.py
 ## Building from Source
 
 ```bash
-git clone https://github.com/poi2/wait-for.git
-cd wait-for
+git clone https://github.com/poi2/wait-for-rs.git
+cd wait-for-rs
 cargo build --release
 ```
 
