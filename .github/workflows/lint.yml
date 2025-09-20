@@ -39,3 +39,20 @@ jobs:
 
       - name: Check markdown formatting
         run: prettier --check '**.md' '**.yml'
+
+  # Summary job that depends on all other jobs
+  lint-ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [changes, lint]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.changes.result }}" == "failure" ||
+                "${{ needs.lint.result }}" == "failure" ]]; then
+            echo "One or more jobs failed"
+            exit 1
+          else
+            echo "All jobs passed or were skipped"
+          fi
