@@ -9,7 +9,6 @@ on:
       - "Cargo.lock"
       - ".github/workflows/rust.yml"
   pull_request:
-    branches: ["main"]
     paths:
       - *rust_paths
 
