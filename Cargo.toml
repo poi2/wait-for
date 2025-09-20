@@ -1,6 +1,6 @@
 [package]
 name = "wait-for-rs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["poi2"]
 description = "A simple CLI to wait for a service to be available before executing a command"
