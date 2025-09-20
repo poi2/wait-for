@@ -1,0 +1,72 @@
+name: "Test"
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test_on_stable:
+    name: Rust test on stable
+    runs-on: ${{matrix.os}}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    timeout-minutes: 45
+    steps:
+      # Prepare
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - run: rustc --version
+
+      # Check compilation
+      - name: Run cargo check
+        run: cargo check --release --workspace --all-features
+
+      # Check lints
+      - name: Run cargo clippy
+        run: |
+          cargo clippy --version
+          cargo clippy --all-targets --all-features -- -D warnings --no-deps
+
+      # Check formatting
+      - name: Run cargo fmt
+        run: |
+          cargo fmt --version
+          cargo fmt --all --check --message-format human
+
+      # Run tests
+      - name: Run tests with all features
+        run: cargo test --all-features
+
+      # Run integration tests
+      - name: Run integration tests
+        run: cargo test --test integration_test --verbose
+
+      # Build release
+      - name: Build release
+        run: cargo build --release --verbose
+
+  test_on_nightly:
+    name: Rust test on nightly
+    needs: test_on_stable
+    runs-on: ubuntu-latest
+    steps:
+      # Prepare
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+      - run: rustc --version
+
+      # Check unused dependencies
+      - name: Install cargo-udeps
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-udeps
+      - name: Run cargo +nightly udeps
+        run: cargo +nightly udeps --release --workspace --all-targets --all-features
